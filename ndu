@@ -3,12 +3,8 @@
 BASEDIR=$(dirname "$0")
 BASENAME=$(basename "$0")
 
-xls2csv() {
-    # Check if the correct number of arguments was provided
-    if [ "$#" -ne 2 ]; then
-        echo "Usage: $BASENAME ${FUNCNAME[0]} input.[xls|xlsx] output.csv"
-        exit 1
-    fi
+_xls2csv() {
+    __check_usage "$#" 2 'input.[xls|xlsx] output.csv'
 
     # Assign input and output file arguments to variables
     input_file="$1"
@@ -37,22 +33,45 @@ xls2csv() {
     sed -i 's/^\t//g' "$output_file"
 }
 
-self-update() {
+_self-update() {
     git -C "$BASEDIR" pull
 }
 
-_commands() {
+__check_usage() {
+    local num_args_given="$1"
+    local num_args_required="$2"
+    local message_suffix="$3"
+
+    if [ "$num_args_given" -ne "$num_args_required" ]; then
+        echo "Usage: $BASENAME ${FUNCNAME[1]} $message_suffix"
+        exit 1
+    fi
+}
+
+__commands() {
     echo "Available commands:"
     echo
     # list all available functions in this script that do not start with an underscore
-    declare -F | awk '{print $3}' | grep -v '^_' | sort | sed 's/^/  /'
+    declare -F | awk '{print $3}' | grep -v '^__' | sed 's/_//' | sort | sed 's/^/  /'
 }
 
 if [ "$#" -eq 0 ]; then
     echo "Usage: $BASENAME <command> [<args>]"
     echo
-    _commands
+    __commands
     exit 1
 fi
 
-"$@"
+# function names conventions:
+# function corresponding to subcommands start with _ (invokable and listed in __commands)
+# function helpers start with __ (not invokable and not listed in __commands)
+# invoke subcommand following the conventions
+
+if declare -f "_$1" >/dev/null; then
+    "_$1" "${@:2}"
+else
+    echo "Unknown command: $1"
+    echo
+    __commands
+    exit 1
+fi
