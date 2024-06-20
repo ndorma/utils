@@ -1,0 +1,37 @@
+#!/bin/env bash
+
+xls2csv() {
+    # Check if the correct number of arguments was provided
+    if [ "$#" -ne 2 ]; then
+        echo "Usage: $0 ${FUNCNAME[0]} input.[xls|xlsx] output.csv"
+        exit 1
+    fi
+
+    # Assign input and output file arguments to variables
+    input_file="$1"
+    output_file="$2"
+
+    # Check if input file exists
+    if [ ! -f "$input_file" ]; then
+        echo "The file '$input_file' does not exist."
+        exit 1
+    fi
+
+    # 1 field separator: 9 (tab)
+    # 2 text delimiter: none
+    # 3 character set: 76 (UTF-8)
+    # libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":9,,76 "$input_file" --outdir "$(dirname "$input_file")"
+    libreoffice --headless --convert-to csv:"Text - txt - csv (StarCalc)":9,,76 "$input_file" --outdir "$(dirname "$input_file")"
+
+    file_extension="${input_file##*.}"
+    # echo "File extension: $file_extension"
+    mv "$(dirname "$input_file")/$(basename "$input_file" "$file_extension")csv" "$output_file"
+
+    # remove empty lines or whitespaces or tabs
+    sed -i '/^\s*$/d' "$output_file"
+
+    # remove first tabs character from output file, if any
+    sed -i 's/^\t//g' "$output_file"
+}
+
+"$@"
