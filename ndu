@@ -1,11 +1,12 @@
 #!/bin/env bash
 
 BASEDIR=$(dirname "$0")
+BASENAME=$(basename "$0")
 
 xls2csv() {
     # Check if the correct number of arguments was provided
     if [ "$#" -ne 2 ]; then
-        echo "Usage: $0 ${FUNCNAME[0]} input.[xls|xlsx] output.csv"
+        echo "Usage: $BASENAME ${FUNCNAME[0]} input.[xls|xlsx] output.csv"
         exit 1
     fi
 
@@ -40,7 +41,7 @@ self-update() {
     git -C "$BASEDIR" pull
 }
 
-commands() {
+_commands() {
     echo "Available commands:"
     echo
     # list all available functions in this script that do not start with an underscore
@@ -48,9 +49,9 @@ commands() {
 }
 
 if [ "$#" -eq 0 ]; then
-    echo "Usage: $(basename "$0") <command> [<args>]"
+    echo "Usage: $BASENAME <command> [<args>]"
     echo
-    commands
+    _commands
     exit 1
 fi
 
