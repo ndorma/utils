@@ -3,6 +3,8 @@
 BASEDIR=$(dirname "$0")
 BASENAME=$(basename "$0")
 
+source "$BASEDIR/modules/backup.sh"
+
 _xls2csv() {
     __check_usage "$#" 2 'input.[xls|xlsx] output.csv'
 

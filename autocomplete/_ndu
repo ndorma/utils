@@ -4,7 +4,7 @@ function _ndu {
     local line
 
     _arguments -C \
-        "1:subcommand:(xls2csv self-update)" \
+        "1:subcommand:(xls2csv backup backup-notify self-update)" \
         "*::arg:->args"
 
     _ndu_"${line[1]}" 2>/dev/null
