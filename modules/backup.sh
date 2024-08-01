@@ -13,14 +13,13 @@ _backup() {
 
     #save in a variable called errors if the __do_backup fails while keeping the standard output in the terminal
     errors=$(__do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}" 2>&1)
-    # errors=$(__do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}" 2>&1)
 
-    if [ -n "$errors" ]; then
+    if [ $? -ne 0 ]; then
         echo "Backup failed:"
         echo "$errors"
+    else
+        errors=""
     fi
-
-    # __do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}"
 
     end_data=$(__collect-size)
 
