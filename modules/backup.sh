@@ -1,15 +1,7 @@
 #! /usr/bin/env bash
 
 _backup() {
-    if [ -z "$NDU_BACKUP_DIR" ]; then
-        echo "NDU_BACKUP_DIR is not set."
-        exit 1
-    fi
-
-    if [ -z "$NDU_BACKUP_BUCKET" ]; then
-        echo "NDU_BACKUP_BUCKET is not set."
-        exit 1
-    fi
+    __check-dependencies && __check-variables
 
     if [ ! -d "$NDU_BACKUP_DIR" ]; then
         mkdir -p "$NDU_BACKUP_DIR"
@@ -38,6 +30,24 @@ _backup-notify-test() {
 }
 
 _backup-check-config() {
+    __check-dependencies && __check-variables
+
+    echo "All dependencies are installed and variables are set."
+}
+
+__check-dependencies() {
+    if ! command -v aws &>/dev/null; then
+        echo "aws is not installed."
+        exit 1
+    fi
+
+    if ! command -v jq &>/dev/null; then
+        echo "jq is not installed."
+        exit 1
+    fi
+}
+
+__check-variables() {
     if [ -z "$NDU_BACKUP_BUCKET" ]; then
         echo "NDU_BACKUP_BUCKET is not set."
         exit 1
@@ -53,23 +63,13 @@ _backup-check-config() {
         exit 1
     fi
 
-    if [ ! -d "$NDU_BACKUP_DIR" ]; then
-        mkdir -p "$NDU_BACKUP_DIR"
-    fi
-
-    __check-dependencies
-
-    echo "All dependencies are installed and variables are set."
-}
-
-__check-dependencies() {
-    if ! command -v aws &>/dev/null; then
-        echo "aws is not installed."
+    if [ -z "$NDU_BACKUP_NOTIFY_API_URL" ]; then
+        echo "NDU_BACKUP_NOTIFY_API_URL is not set."
         exit 1
     fi
 
-    if ! command -v jq &>/dev/null; then
-        echo "jq is not installed."
+    if [ -z "$NDU_BACKUP_NOTIFY_API_TOKEN" ]; then
+        echo "NDU_BACKUP_NOTIFY_API_TOKEN is not set."
         exit 1
     fi
 }
