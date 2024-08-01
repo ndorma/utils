@@ -11,13 +11,21 @@ _backup() {
 
     start_data=$(__collect-size)
 
-    __do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}"
+    #save in a variable called errors if the __do_backup fails while keeping the standard output in the terminal
+    errors=$(__do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}" 2>&1)
+    # errors=$(__do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}" 2>&1)
+
+    if [ -n "$errors" ]; then
+        echo "Backup failed:"
+        echo "$errors"
+    fi
+
+    # __do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}"
 
     end_data=$(__collect-size)
 
     # shellcheck disable=SC2086
-    __data2json $start_data $end_data | __do_notify
-    # __data2json "$start_date" "$start_size" "$start_nfiles" "$end_date" "$end_size" "$end_nfiles" | __do_notify
+    __data2json $start_data $end_data "$errors" | __do_notify
 }
 
 __backup-notify-test() {
@@ -100,6 +108,7 @@ __data2json() {
         --arg end_time "$4" \
         --arg end_size "$5" \
         --arg end_nfiles "$6" \
+        --arg error "$7" \
         --arg bucket "$NDU_BACKUP_BUCKET" \
         --arg dir "$NDU_BACKUP_DIR" \
         --arg hostname "$HOSTNAME" \
@@ -117,7 +126,8 @@ __data2json() {
                 },
                 bucket: $bucket,
                 dir: $dir,
-                hostname: $hostname
+                hostname: $hostname,
+                error: $error
             }
         '
 }
