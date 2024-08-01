@@ -37,6 +37,43 @@ _backup-notify-test() {
     __data2json $start_data $end_data | __do_notify
 }
 
+_backup-check-config() {
+    if [ -z "$NDU_BACKUP_BUCKET" ]; then
+        echo "NDU_BACKUP_BUCKET is not set."
+        exit 1
+    fi
+
+    if [ -z "$NDU_BACKUP_DIR" ]; then
+        echo "NDU_BACKUP_DIR is not set."
+        exit 1
+    fi
+
+    if [ -z "$NDU_BACKUP_PROFILE" ]; then
+        echo "NDU_BACKUP_PROFILE is not set."
+        exit 1
+    fi
+
+    if [ ! -d "$NDU_BACKUP_DIR" ]; then
+        mkdir -p "$NDU_BACKUP_DIR"
+    fi
+
+    __check-dependencies
+
+    echo "All dependencies are installed and variables are set."
+}
+
+__check-dependencies() {
+    if ! command -v aws &>/dev/null; then
+        echo "aws is not installed."
+        exit 1
+    fi
+
+    if ! command -v jq &>/dev/null; then
+        echo "jq is not installed."
+        exit 1
+    fi
+}
+
 __collect-size() {
     size=$(du -s "${NDU_BACKUP_DIR}" | cut -f1)
     nfiles=$(find "${NDU_BACKUP_DIR}" -type f | wc -l)
