@@ -20,7 +20,7 @@ _backup() {
     # __data2json "$start_date" "$start_size" "$start_nfiles" "$end_date" "$end_size" "$end_nfiles" | __do_notify
 }
 
-_backup-notify-test() {
+__backup-notify-test() {
     start_data=$(__collect-size)
     sleep 1
     end_data=$(__collect-size)
@@ -33,6 +33,16 @@ _backup-check-config() {
     __check-dependencies && __check-variables
 
     echo "All dependencies are installed and variables are set."
+
+    response=$(__backup-notify-test)
+    if [ "$(echo "$response" | jq .error)" == true ]; then
+        echo "Backup notify test failed:"
+        echo "$response" | jq -r ".errors | join(\"\\n\")"
+        exit 1
+    fi
+
+    echo "Backup notify test passed:"
+    echo "$response" | jq -r ".messages | join(\"\\n\")"
 }
 
 __check-dependencies() {
@@ -113,16 +123,6 @@ __data2json() {
 }
 
 __do_notify() {
-    if [ -z "$NDU_BACKUP_NOTIFY_API_URL" ]; then
-        echo "NDU_BACKUP_NOTIFY_API_URL is not set."
-        exit 1
-    fi
-
-    if [ -z "$NDU_BACKUP_NOTIFY_API_TOKEN" ]; then
-        echo "NDU_BACKUP_NOTIFY_API_TOKEN is not set."
-        exit 1
-    fi
-
     data=$(cat)
 
     if [ -z "$data" ]; then
@@ -130,7 +130,7 @@ __do_notify() {
         exit 1
     fi
 
-    curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${NDU_BACKUP_NOTIFY_API_TOKEN}" -d "$data" "https://$NDU_BACKUP_NOTIFY_API_URL"
+    curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${NDU_BACKUP_NOTIFY_API_TOKEN}" -d "$data" "https://$NDU_BACKUP_NOTIFY_API_URL"
 }
 
 __do_backup() {
