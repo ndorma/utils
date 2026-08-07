@@ -150,7 +150,7 @@ __do_notify() {
         exit 1
     fi
 
-    curl -s --fail -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${NDU_BACKUP_NOTIFY_API_TOKEN}" -d "$data" "https://$NDU_BACKUP_NOTIFY_API_URL"
+    curl -s --fail-with-body -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${NDU_BACKUP_NOTIFY_API_TOKEN}" -d "$data" "https://$NDU_BACKUP_NOTIFY_API_URL"
 }
 
 __do_backup() {
