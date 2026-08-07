@@ -13,18 +13,21 @@ _backup() {
 
     #save in a variable called errors if the __do_backup fails while keeping the standard output in the terminal
     errors=$(__do_backup "${NDU_BACKUP_BUCKET}" "${NDU_BACKUP_DIR}" 2>&1)
+    rc=$?
 
-    if [ $? -ne 0 ]; then
-        echo "Backup failed:"
-        echo "$errors"
+    end_data=$(__collect-size)
+
+    if [ $rc -ne 0 ]; then
+        echo "Backup failed:" >&2
+        echo "$errors" >&2
     else
         errors=""
     fi
 
-    end_data=$(__collect-size)
-
     # shellcheck disable=SC2086
     __data2json $start_data $end_data "$errors" | __do_notify
+
+    exit $rc
 }
 
 __backup-notify-test() {
@@ -139,7 +142,7 @@ __do_notify() {
         exit 1
     fi
 
-    curl -s -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${NDU_BACKUP_NOTIFY_API_TOKEN}" -d "$data" "https://$NDU_BACKUP_NOTIFY_API_URL"
+    curl -s --fail -X POST -H "Content-Type: application/json" -H "Authorization: Bearer ${NDU_BACKUP_NOTIFY_API_TOKEN}" -d "$data" "https://$NDU_BACKUP_NOTIFY_API_URL"
 }
 
 __do_backup() {
