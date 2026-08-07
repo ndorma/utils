@@ -36,7 +36,10 @@ __backup-notify-test() {
     end_data=$(__collect-size)
 
     # shellcheck disable=SC2086
-    __data2json $start_data $end_data | __do_notify
+    response=$(__data2json $start_data $end_data | __do_notify 2>&1)
+    rc=$?
+    echo "$response"
+    return $rc
 }
 
 _backup-check-config() {
@@ -45,6 +48,11 @@ _backup-check-config() {
     echo "All dependencies are installed and variables are set."
 
     response=$(__backup-notify-test)
+    if [ $? -ne 0 ]; then
+        echo "Backup notify test failed (HTTP error):"
+        echo "$response"
+        exit 1
+    fi
     if [ "$(echo "$response" | jq .error)" == true ]; then
         echo "Backup notify test failed:"
         echo "$response" | jq -r ".errors | join(\"\\n\")"
